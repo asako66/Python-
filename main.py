@@ -11,7 +11,7 @@ class Ball(pygame.sprite.Sprite):
 
   def __init__(self, paddle):
     pygame.sprite.Sprite.__init__(self, self.containers)
-    self.image = pygame.image.load("ball.png")
+    self.image = pygame.image.load("ball.png").convert_alpha()
     self.rect = self.image.get_rect()
     self.paddle = paddle
     self.rect.centerx = self.paddle.rect.centerx
@@ -57,7 +57,7 @@ class Paddle(pygame.sprite.Sprite):
 
   def __init__(self):
     pygame.sprite.Sprite.__init__(self, self.containers)
-    self.image = pygame.image.load("paddle.png")
+    self.image = pygame.image.load("paddle.png").convert_alpha()
     self.rect = self.image.get_rect()
     self.rect.bottom = SCREEN.bottom
 
