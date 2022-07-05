@@ -1,8 +1,56 @@
+from shutil import move
 import pygame
 from pygame.locals import *
 import sys
 
 SCREEN = Rect((0,0,640,480))
+
+class Ball(pygame.sprite.Sprite):
+  """ボール"""
+  SPEED = 5
+
+  def __init__(self, paddle):
+    pygame.sprite.Sprite.__init__(self, self.containers)
+    self.image = pygame.image.load("ball.png")
+    self.rect = self.image.get_rect()
+    self.paddle = paddle
+    self.rect.centerx = self.paddle.rect.centerx
+    self.rect.bottom = self.paddle.rect.top
+    self.dx = 0
+    self.dy = 0
+    self.status = "INIT"
+
+  def update(self):
+    if self.status == "INIT":
+      self.rect.centerx = self.paddle.rect.centerx
+      self.rect.bottom = self.paddle.rect.top
+    if pygame.mouse.get_pressed()[0] == 1:
+      self.status = "RUNNING"
+      self.dx = Ball.SPEED
+      self.dy = -Ball.SPEED
+    self.rect.centerx += self.dx
+    self.rect.centery += self.dy
+    # 壁との反射
+    if self.rect.left < SCREEN.left:  # 左側
+      self.rect.left = SCREEN.left
+      self.dx = -self.dx  # 速度を反転
+    if self.rect.right > SCREEN.right:  # 右側
+      self.rect.right = SCREEN.right
+      self.dx = -self.dx
+    if self.rect.top < SCREEN.top:  # 上側
+      self.rect.top = SCREEN.top
+      self.dy = -self.dy
+    # パドルとの反射
+    if self.rect.colliderect(self.paddle.rect) and self.dy > 0:
+      self.dy = -self.dy
+    # ボールを落とした場合
+    if self.rect.top > SCREEN.bottom:
+      self.status = "INIT"
+      self.dx = 0
+      self.dy = 0
+      self.rect.centerx = self.paddle.rect.centerx
+      self.rect.bottom = self.paddle.rect.top
+      # ボールを初期状態に
 
 class Paddle(pygame.sprite.Sprite):
   """パドル"""
@@ -29,8 +77,10 @@ def main():
   # Sprite登録
   group = pygame.sprite.RenderUpdates()
   Paddle.containers = group
+  Ball.containers = group
 
   paddle = Paddle()
+  ball = Ball(paddle)
 
   while True:
     # 画面（screen）をクリア
