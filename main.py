@@ -12,6 +12,7 @@ class Ball(pygame.sprite.Sprite):
   def __init__(self, paddle, blocks):
     pygame.sprite.Sprite.__init__(self, self.containers)
     self.image = pygame.image.load("picture/ball.png").convert_alpha()
+    self.image = pygame.transform.scale(self.image, (24,24))
     self.rect = self.image.get_rect()
     self.paddle = paddle
     self.rect.centerx = self.paddle.rect.centerx
