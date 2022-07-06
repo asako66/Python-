@@ -1,12 +1,14 @@
 import pygame
 from pygame.locals import *
 import sys
+import math
 
 SCREEN = Rect((0,0,640,480))
 
 class Ball(pygame.sprite.Sprite):
   """ボール"""
   SPEED = 5
+  ANGLE_LEFT, ANGLE_RIGHT = 135, 45
 
   def __init__(self, paddle, blocks):
     pygame.sprite.Sprite.__init__(self, self.containers)
@@ -70,6 +72,21 @@ class Ball(pygame.sprite.Sprite):
         if block.rect.top < self.rect.top < block.rect.bottom < self.rect.bottom:
           self.rect.top = block.rect.bottom
           self.dy = -self.dy
+
+    # パドルとの反射
+    if self.rect.colliderect(self.paddle.rect) and self.dy > 0:
+      # パドルの左端に当たったとき135度方向、右端で45度方向とし、
+      # その間は線形補間で反射方向を計算
+      x1 = self.paddle.rect.left - self.rect.width  # ボールが当たる左端
+      y1 = self.angle_left  # 左端での反射方向（135度）
+      x2 = self.paddle.rect.right  # ボールが当たる右端
+      y2 = self.angle_right  # 右端での反射方向（45度）
+      m = float(y2-y1) / (x2-x1)  # 直線の傾き
+      x = self.rect.left  # ボールが当たった位置
+      y = m * (x - x1) + y1
+      angle = math.radians(y)
+      self.dx = self.speed * math.cos(angle)  # float
+      self.dy = -self.speed * math.sin(angle) # float
 
 class Paddle(pygame.sprite.Sprite):
   """パドル"""
