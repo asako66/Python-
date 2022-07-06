@@ -9,7 +9,7 @@ class Ball(pygame.sprite.Sprite):
   """ボール"""
   SPEED = 5
 
-  def __init__(self, paddle):
+  def __init__(self, paddle, blocks):
     pygame.sprite.Sprite.__init__(self, self.containers)
     self.image = pygame.image.load("picture/ball.png").convert_alpha()
     self.rect = self.image.get_rect()
@@ -18,6 +18,7 @@ class Ball(pygame.sprite.Sprite):
     self.rect.bottom = self.paddle.rect.top
     self.dx = 0
     self.dy = 0
+    self.blocks = blocks
     self.status = "INIT"
 
   def update(self):
@@ -49,8 +50,26 @@ class Ball(pygame.sprite.Sprite):
       self.dx = 0
       self.dy = 0
       self.rect.centerx = self.paddle.rect.centerx
-      self.rect.bottom = self.paddle.rect.top
-      # ボールを初期状態に
+      self.rect.bottom = self.paddle.rect.top # ボールを初期状態に
+    blocks_collided = pygame.sprite.spritecollide(self, self.blocks, True)
+    if blocks_collided:
+      for block in blocks_collided:
+        # ボールが左から衝突
+        if self.rect.left < block.rect.left < self.rect.right < block.rect.right:
+          self.rect.right = block.rect.left
+          self.dx = -self.dx
+        # ボールが右から衝突
+        if block.rect.left < self.rect.left < block.rect.right < self.rect.right:
+          self.rect.left = block.rect.right
+          self.dx = -self.dx
+        # ボールが上から衝突
+        if self.rect.top < block.rect.top < self.rect.bottom < block.rect.bottom:
+          self.rect.bottom = block.rect.top
+          self.dy = -self.dy
+        # ボールが下から衝突
+        if block.rect.top < self.rect.top < block.rect.bottom < self.rect.bottom:
+          self.rect.top = block.rect.bottom
+          self.dy = -self.dy
 
 class Paddle(pygame.sprite.Sprite):
   """パドル"""
@@ -65,6 +84,19 @@ class Paddle(pygame.sprite.Sprite):
     self.rect.centerx = pygame.mouse.get_pos()[0]
     self.rect.clamp_ip(SCREEN)
 
+class Block(pygame.sprite.Sprite):
+  """ブロック"""
+
+  def __init__(self, x, y):
+    pygame.sprite.Sprite.__init__(self, self.containers)
+    self.image = pygame.image.load("picture/Block.png").convert_alpha()
+    self.image = pygame.transform.scale(self.image, (56,56))
+    self.rect = self.image.get_rect()
+    self.rect.left = SCREEN.left + x * self.rect.width
+    self.rect.top = SCREEN.top + y * self.rect.height
+
+  def update(self):
+    pass
 
 def main():
   # 初期設定
@@ -76,11 +108,16 @@ def main():
   # 登場する人もの背景の作成
   # Sprite登録
   group = pygame.sprite.RenderUpdates()
+  blocks = pygame.sprite.Group()
   Paddle.containers = group
   Ball.containers = group
+  Block.containers = group, blocks
 
   paddle = Paddle()
-  ball = Ball(paddle)
+  for x in range(1, 11):  # 1列から10列まで
+    for y in range(1, 3):  # 1行から5行まで
+      Block(x, y)
+  ball = Ball(paddle, blocks)
 
   while True:
     # 画面（screen）をクリア
