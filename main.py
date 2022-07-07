@@ -9,8 +9,10 @@ class Ball(pygame.sprite.Sprite):
   """ボール"""
   SPEED = 5
   ANGLE_LEFT, ANGLE_RIGHT = 135, 45
+  MINUS_POINT = 30
+  PLUS_POINT = 3
 
-  def __init__(self, paddle, blocks):
+  def __init__(self, paddle, blocks, score):
     pygame.sprite.Sprite.__init__(self, self.containers)
     self.image = pygame.image.load("picture/ball.png").convert_alpha()
     self.image = pygame.transform.scale(self.image, (24,24))
@@ -21,6 +23,7 @@ class Ball(pygame.sprite.Sprite):
     self.dx = 0
     self.dy = 0
     self.blocks = blocks
+    self.score = score
     self.status = "INIT"
 
   def update(self):
@@ -53,6 +56,7 @@ class Ball(pygame.sprite.Sprite):
       self.dy = 0
       self.rect.centerx = self.paddle.rect.centerx
       self.rect.bottom = self.paddle.rect.top # ボールを初期状態に
+      self.score.add_score(-Ball.MINUS_POINT)
     blocks_collided = pygame.sprite.spritecollide(self, self.blocks, True)
     if blocks_collided:
       for block in blocks_collided:
@@ -72,6 +76,7 @@ class Ball(pygame.sprite.Sprite):
         if block.rect.top < self.rect.top < block.rect.bottom < self.rect.bottom:
           self.rect.top = block.rect.bottom
           self.dy = -self.dy
+        self.score.add_score(Ball.PLUS_POINT)
 
     # パドルとの反射
     if self.rect.colliderect(self.paddle.rect) and self.dy > 0:
@@ -115,6 +120,23 @@ class Block(pygame.sprite.Sprite):
   def update(self):
     pass
 
+class Score:
+  """スコア"""
+
+  def __init__(self):
+    self.score = 0
+    self.font = pygame.font.SysFont(None, 60)
+
+  def draw(self, screen):
+    score_img = self.font.render(str(self.score), True, (255,0,255))
+    x = (SCREEN.size[0] - score_img.get_width()) / 2
+    y = (SCREEN.size[1] - score_img.get_height()) / 2
+    screen.blit(score_img, (x, y))
+
+  def add_score(self, pt):
+    self.score += pt
+
+
 def main():
   # 初期設定
   pygame.init()
@@ -134,7 +156,8 @@ def main():
   for x in range(1, 11):  # 1列から10列まで
     for y in range(1, 3):  # 1行から5行まで
       Block(x, y)
-  ball = Ball(paddle, blocks)
+  score = Score()
+  ball = Ball(paddle, blocks, score)
 
   while True:
     # 画面（screen）をクリア
@@ -145,6 +168,7 @@ def main():
 
     # 画面（screen）上に登場する人もの背景を描画
     group.draw(screen)
+    score.draw(screen)
 
     # 画面（screen）の実表示
     pygame.display.update()
