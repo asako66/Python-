@@ -5,6 +5,17 @@ import math
 
 SCREEN = Rect((0,0,640,480))
 
+class Background:
+  """背景"""
+
+  def __init__(self):
+    self.image = pygame.image.load("picture/BG.png")
+    self.image = pygame.transform.scale(self.image, (640,480))
+    self.rect = self.image.get_rect()
+
+  def draw(self, screen):
+    screen.blit(self.image, self.rect)
+
 class Ball(pygame.sprite.Sprite):
   """ボール"""
   SPEED = 5
@@ -152,6 +163,7 @@ def main():
   Ball.containers = group
   Block.containers = group, blocks
 
+  background = Background()
   paddle = Paddle()
   for x in range(1, 11):  # 1列から10列まで
     for y in range(1, 3):  # 1行から5行まで
@@ -167,6 +179,7 @@ def main():
     group.update()
 
     # 画面（screen）上に登場する人もの背景を描画
+    background.draw(screen)
     group.draw(screen)
     score.draw(screen)
 
